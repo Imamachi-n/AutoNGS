@@ -142,8 +142,8 @@ for sra_xml_number in range(xml_counter):
                     sample_title = re.sub("\)", '', sample_title)
                     sample_title = re.sub("&", '_', sample_title)
                     sample_title = re.sub("=", '-', sample_title)
-                    sample_title = re.sub("[", '', sample_title)
-                    sample_title = re.sub("]", '', sample_title)
+                    sample_title = re.sub("\[", '', sample_title)
+                    sample_title = re.sub("\]", '', sample_title)
                     sample_title = escapeUnicodeEncodeError(sample_title)
 
                 if child_3.tag == "RUN":
