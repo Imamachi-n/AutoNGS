@@ -16,6 +16,9 @@ for line in input_file:
     Project_id = data[0]
     srr_id = data[1]
     file_name = data[2]
+    # Skip non-labeled samples
+    if data[3] == '':
+        continue
     sample_label_list = data[3].split(',')
     # Prep srr_id & sample_label for each sample
     if not file_name in filename_srrid_dict:
