@@ -5,9 +5,9 @@
 #$ -l s_vmem=32G
 #$ -l mem_req=32G
 
-file=`basename ${1} _1.fastq`
-file=`basename ${file} _2.fastq`
-file=`basename ${file} .fastq`
+# file=`basename ${1} _1.fastq`
+# file=`basename ${file} _2.fastq`
+file=`basename ${1} .fastq`
 gtfFile="/home/akimitsu/database/gencode.v19.annotation_filtered.gtf"
 indexFile="/home/akimitsu/database/bowtie1_index/hg19"
 
@@ -52,3 +52,7 @@ bedtools genomecov -ibam ./STAR_output_${file}/${file}_4_STAR_result_Aligned.sor
 echo "track type=bedGraph name=${file} description=${file} visibility=2 maxHeightPixels=40:40:20" > ./UCSC_visual_${file}/tmp.txt
 cat ./UCSC_visual_${file}/tmp.txt ./UCSC_visual_${file}/${file}_4_result.bg > ./UCSC_visual_${file}/${file}_4_result_for_UCSC.bg
 bzip2 -c ./UCSC_visual_${file}/${file}_4_result_for_UCSC.bg > ./UCSC_visual_${file}/${file}_4_result_for_UCSC.bg.bz2
+
+echo "Mapping finished"
+rm ./${file}_1.fastq
+rm ./${file}_2.fastq

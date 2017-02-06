@@ -10,8 +10,8 @@ gtfFile="/home/akimitsu/database/gencode.v19.annotation_filtered.gtf"
 indexFile="/home/akimitsu/database/bowtie1_index/hg19"
 
 ## 1. Quality check
-mkdir fastqc_"$file"
-fastqc -o ./fastqc_"$file" ./"$file".fastq -f fastq
+mkdir fastqc_${file}
+fastqc -o ./fastqc_${file} ./${file}.fastq -f fastq
 
 ## 2. Quality filtering (Option)
 fastq_quality_trimmer -Q33 -t 20 -l 10 -i ./${file}.fastq | fastq_quality_filter -Q33 -q 20 -p 80 -o ${file}_1_filtered.fastq
@@ -49,3 +49,7 @@ bedtools genomecov -ibam ./STAR_output_${file}/${file}_4_STAR_result_Aligned.sor
 echo "track type=bedGraph name=${file} description=${file} visibility=2 maxHeightPixels=40:40:20" > ./UCSC_visual_${file}/tmp.txt
 cat ./UCSC_visual_${file}/tmp.txt ./UCSC_visual_${file}/${file}_4_result.bg > ./UCSC_visual_${file}/${file}_4_result_for_UCSC.bg
 bzip2 -c ./UCSC_visual_${file}/${file}_4_result_for_UCSC.bg > ./UCSC_visual_${file}/${file}_4_result_for_UCSC.bg.bz2
+
+echo "Mapping finished"
+rm ./${file}.fastq
+rm ./${file}_1_filtered.fastq

@@ -78,9 +78,11 @@ print("#!/bin/bash", file=cuffdiff_run_file)
 job_id = '"job_{0}_*"'.format(Project_id)
 
 counter = len(count_list)
+cuff_job_id_list = []
 for x in range(counter):
     output_file = open("RNA-seq_unstr_2_quantification_No{0}.sh".format(x), 'w')
-    print("qsub -hold_jid {1} RNA-seq_unstr_2_quantification_No{0}.sh".format(x, ",".join(job_id_list)), file=cuffdiff_run_file)
+    print("qsub -N cuffdiff_{2}_No{0} -hold_jid {1} RNA-seq_unstr_2_quantification_No{0}.sh".format(x, ",".join(job_id_list), Project_id), file=cuffdiff_run_file)
+    cuff_job_id_list.append("cuffdiff_{1}_No{0}".format(x, Project_id))
     control = "C{0}".format(str(x))
     treated = "T{0}".format(str(x))
     control_filepass = ref_infor[control]
@@ -111,7 +113,6 @@ python ~/custom_command/cuffdiff_result.py ${gene_list} ./cuffdiff_out_${filenam
 gene_type="lncRNA"
 result_file="cuffdiff_result_lncRNA.txt"
 python ~/custom_command/cuffdiff_result.py ${gene_list} ./cuffdiff_out_${filename}/${cuffnorm_data} ${gene_type} ./cuffdiff_out_${filename}/${result_file}
-
 """
 
     print(test, file=output_file)
@@ -124,4 +125,22 @@ python ~/custom_command/cuffdiff_result.py ${gene_list} ./cuffdiff_out_${filenam
 
     output_file.close()
 
+print("qsub -hold_jid {1} RNA-seq_unstr_3_finish.sh".format(x, ",".join(cuff_job_id_list)), file=cuffdiff_run_file)
+
 cuffdiff_run_file.close()
+
+finish_run_file = open("RNA-seq_unstr_3_finish.sh", 'w')
+test4 ="""#!/bin/bash
+#$ -S /bin/bash
+#$ -cwd
+#$ -soft -l ljob,lmem
+#$ -l s_vmem=4G
+#$ -l mem_req=4G
+
+# Slack comment
+dirpath=`pwd`
+dirname=`basename ${dirpath}`
+python ~/custom_command/slack_bot.py ${dirname}_analysis_was_finished
+"""
+print(test4, file=finish_run_file)
+finish_run_file.close()

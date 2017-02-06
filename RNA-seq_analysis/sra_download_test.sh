@@ -5,4 +5,7 @@
 #$ -l s_vmem=4G
 #$ -l mem_req=4G
 
-sra_download.sh PRJNA339733
+projectID="PRJNA339733"
+
+sra_download.sh ${projectID}
+python ~/custom_command/slack_bot.py ${projectID}_download_was_finished
