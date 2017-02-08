@@ -1,0 +1,9 @@
+#!/bin/bash
+
+while true
+do
+    lfsq -s -c > disk_log.txt
+    # python ~/custom_command/check_disk.py disk_log.txt
+    python ./check_disk.py disk_log.txt
+    sleep 60
+done
