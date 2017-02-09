@@ -8,4 +8,3 @@
 projectID="PRJNA264147"
 
 sra_download.sh ${projectID}
-python ~/custom_command/slack_bot.py ${projectID}_download_was_finished

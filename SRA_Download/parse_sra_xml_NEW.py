@@ -6,6 +6,7 @@ from __future__ import print_function
 import sys
 import xml.etree.ElementTree as ET
 import re
+import subprocess
 
 def escapeUnicodeEncodeError(string):
     try:

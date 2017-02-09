@@ -5,17 +5,53 @@ import sys
 
 input_file = open(sys.argv[1], 'r')
 mode_infor = sys.argv[2] # SINGLE, PAIRED
+project_dict = sys.argv[3] # 20_PRJNA312917
 
 filename_srrid_dict = {}
 filename_label_dict = {}
 Project_id = ""
 
+output_file = open("RNA-seq_unstr_0_sra2fastq_for_run.sh", 'w')
+sra2fastq_count = 0
+core_line_1 = """#!/bin/bash
+#$ -S /bin/bash
+#$ -cwd
+#$ -soft -l ljob,lmem
+#$ -l s_vmem=4G
+#$ -l mem_req=4G
+
+"""
+print(core_line_1, end="\n", file=output_file)
+
+sra2fastq_job_list = []
 for line in input_file:
     line = line.rstrip()
     data = line.split("\t")
     Project_id = data[0]
     srr_id = data[1]
     file_name = data[2]
+
+    # create each sra2fastq script
+    output_sra_file = open("RNA-seq_unstr_0_sra2fastq_No{0}.sh".format(sra2fastq_count), 'w')
+    sra_name = "{0}_{1}.sra".format(srr_id, file_name)
+    sra_line_2 = ""
+    if mode_infor == "SINGLE":
+        sra_line_2 = "fastq-dump {0}".format(sra_name)
+    elif mode_infor == "PAIRED":
+        sra_line_2 = "fastq-dump --split-files {0}".format(sra_name)
+    print(core_line_1, end="\n", file=output_sra_file)
+    print(sra_line_2, end="\n", file=output_sra_file)
+
+    # Create qsub line for sra2fastq
+    job_id = "sra2fastq_{0}_{1}".format(project_dict, sra2fastq_count)
+    sra2fastq_job_list.append(job_id)
+    qsub_line = "qsub -N {1} ./RNA-seq_unstr_0_sra2fastq_No{0}.sh".format(sra2fastq_count, job_id)
+    print(qsub_line, end="\n", file=output_file)
+
+    sra2fastq_count += 1
+    output_sra_file.close()
+
+
     # Skip non-labeled samples
     if data[3] == '':
         continue
@@ -30,6 +66,32 @@ for line in input_file:
         filename_srrid_dict[file_name].append(srr_id)
         for sample_label in sample_label_list:
             filename_label_dict[file_name].append(sample_label)
+
+# sra2fstq run script
+x_analysis_name = "RNA-seq_unstr_0_X_analysis_for_run.sh"    # Merge, mapping, quant
+merge_fastq_line = "qsub -hold_jid {0} {1}".format(','.join(sra2fastq_job_list), x_analysis_name)
+print(merge_fastq_line, end="\n", file=output_file)
+
+# merge, mapping, quant run script
+merge_fastq_file = open(x_analysis_name, 'w')
+print(core_line_1, end="\n", file=merge_fastq_file)
+x_analysis_line=""
+if mode_infor == "SINGLE":
+    x_analysis_line="""
+python ~/custom_command/merge_fastq.py srafile_name_label.txt SINGLE
+bash ./RNA-seq_unstr_1_mapping_for_run.sh
+bash ./RNA-seq_unstr_2_quantification_for_run.sh
+"""
+elif mode_infor == "PAIRED":
+    x_analysis_line="""
+python ~/custom_command/merge_fastq.py srafile_name_label.txt PAIRED
+bash ./RNA-seq_unstr_1_mapping_for_run.sh
+bash ./RNA-seq_unstr_2_quantification_for_run.sh
+"""
+print(x_analysis_line, end="\n", file=merge_fastq_file)
+
+merge_fastq_file.close()
+output_file.close()
 
 ref_infor = {}
 count_list = []

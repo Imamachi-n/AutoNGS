@@ -6,5 +6,7 @@ python ~/custom_command/parse_sra_xml_NEW.py srafile_xml.txt srafile_url.txt sra
 
 # Download SRA files
 esearch -db sra -query ${query} | efetch --format runinfo | cut -d ',' -f 10 > srafile.txt
-wget -i srafile.txt
-python ~/custom_command/rename_sra_files.py srafile_name.txt
+dirpath=`pwd`
+dirname=`basename ${dirpath}`
+python ~/custom_command/sra_parallel_download.py ./srafile.txt ${dirname}
+bash ./sra_parallel_download.sh

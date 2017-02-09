@@ -6,9 +6,7 @@
 #$ -l mem_req=4G
 
 dirpath=`pwd`
-projectID=`basename ${dirpath}`
+dirname=`basename ${dirpath}`
 
-# sra_download.sh ${projectID}
-wget -i srafile.txt
-python ~/custom_command/rename_sra_files.py srafile_name.txt
-python ~/custom_command/slack_bot.py ${projectID}_download_was_finished
+python ~/custom_command/sra_parallel_download.py ./srafile.txt ${dirname}
+bash ./sra_parallel_download.sh
