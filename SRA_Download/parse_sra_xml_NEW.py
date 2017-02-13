@@ -19,7 +19,7 @@ def escapeUnicodeEncodeError(string):
         string = string.replace(u'\u03bc', 'u')
         string = string.replace(u'\xef', 'i')
         string = string.replace(u'\xb5', 'u')
-        string = string.replace(u'\xa0', ' ')
+        string = string.replace(u'\xa0', '_')
         string = string.encode('utf-8')
         return(string)
     except:

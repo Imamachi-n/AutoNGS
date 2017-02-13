@@ -50,6 +50,11 @@ echo "track type=bedGraph name=${file} description=${file} visibility=2 maxHeigh
 cat ./UCSC_visual_${file}/tmp.txt ./UCSC_visual_${file}/${file}_4_result.bg > ./UCSC_visual_${file}/${file}_4_result_for_UCSC.bg
 bzip2 -c ./UCSC_visual_${file}/${file}_4_result_for_UCSC.bg > ./UCSC_visual_${file}/${file}_4_result_for_UCSC.bg.bz2
 
+# featureCounts - read counts
+mkdir featureCounts_result_${file}
+featureCounts -T 8 -t exon -g gene_id -a ${gtfFile} -o featureCounts_result_${file}/featureCounts_result_${file}.txt ./STAR_output_${file}/${file}_4_STAR_result_Aligned.sortedByCoord.out.bam
+sed -e "1,2d" featureCounts_result_${file}/featureCounts_result_${file}.txt | cut -f1,7 - > featureCounts_result_${file}/featureCounts_result_${file}_for_R.txt
+
 echo "Mapping finished"
 rm ./${file}.fastq
 rm ./${file}_1_filtered.fastq

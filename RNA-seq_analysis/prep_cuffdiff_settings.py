@@ -94,6 +94,7 @@ merge_fastq_file.close()
 output_file.close()
 
 ref_infor = {}
+ref_infor_edger = {}
 count_list = []
 
 output_file = open("RNA-seq_unstr_1_mapping_for_run.sh", 'w')
@@ -111,10 +112,10 @@ for file_name in filename_srrid_dict.keys():
     # Mapping shell scripts
     fastq_name = "{0}.fastq".format(srr_name)
     if mode_infor == "SINGLE":
-        print("qsub -N job_{1}_{2} ./RNA-seq_unstr_single-end_1_mapping.sh {0}".format(fastq_name, Project_id, str(job_count)), end="\n", file=output_file)
+        print("bash ./RNA-seq_unstr_single-end_1_mapping.sh {0}".format(fastq_name), end="\n", file=output_file)
         job_id_list.append("job_{0}_{1}".format(Project_id, str(job_count)))
     elif mode_infor == "PAIRED":
-        print("qsub -N job_{1}_{2} ./RNA-seq_unstr_paired-end_1_mapping.sh {0}".format(fastq_name, Project_id, str(job_count)), end="\n", file=output_file)
+        print("bash ./RNA-seq_unstr_paired-end_1_mapping.sh {0}".format(fastq_name), end="\n", file=output_file)
         job_id_list.append("job_{0}_{1}".format(Project_id, str(job_count)))
     else:
         print("Error: mode_infor should be SINGLE or PAIRED")
@@ -122,6 +123,7 @@ for file_name in filename_srrid_dict.keys():
     job_count += 1
 
     filepass = "./STAR_output_{0}/{0}_4_STAR_result_Aligned.sortedByCoord.out.bam".format(srr_name)
+    filepass_edger = "./featureCounts_result_{0}/featureCounts_result_{0}_for_R.txt".format(srr_name)
     for sample_label in label_list:
         sample_label_counter = sample_label.replace("C", "")
         sample_label_counter = sample_label_counter.replace("T", "")
@@ -129,8 +131,10 @@ for file_name in filename_srrid_dict.keys():
             count_list.append(sample_label_counter)
         if not sample_label in ref_infor:
             ref_infor[sample_label] = [filepass]
+            ref_infor_edger[sample_label] = [filepass_edger]
         elif not filepass in ref_infor[sample_label]:
             ref_infor[sample_label].append(filepass)
+            ref_infor_edger[sample_label].append(filepass_edger)
 
 output_file.close()
 
@@ -149,6 +153,19 @@ for x in range(counter):
     treated = "T{0}".format(str(x))
     control_filepass = ref_infor[control]
     treated_filepass = ref_infor[treated]
+
+    # edgeR
+    edger_filepass = []
+    control_filepass_edger = ref_infor_edger[control]
+    treated_filepass_edger = ref_infor_edger[treated]
+    edger_filepass.extend(control_filepass_edger)
+    edger_filepass.extend(treated_filepass_edger)
+    edger_control = ["C"] * len(control_filepass_edger)
+    edger_treatment = ["T"] * len(treated_filepass_edger)
+    edger_label = []
+    edger_label.extend(edger_control)
+    edger_label.extend(edger_treatment)
+
     test ="""#!/bin/bash
 #$ -S /bin/bash
 #$ -cwd
@@ -177,6 +194,7 @@ result_file="cuffdiff_result_lncRNA.txt"
 python ~/custom_command/cuffdiff_result.py ${gene_list} ./cuffdiff_out_${filename}/${cuffnorm_data} ${gene_type} ./cuffdiff_out_${filename}/${result_file}
 """
 
+    # Cuffdiff
     print(test, file=output_file)
     print(filename, file=output_file)
     print("\n", file=output_file)
@@ -184,6 +202,25 @@ python ~/custom_command/cuffdiff_result.py ${gene_list} ./cuffdiff_out_${filenam
     print(",".join(control_filepass), " \\", sep=" ", end="\n", file=output_file)
     print(",".join(treated_filepass), sep=" ", end="\n", file=output_file)
     print(test3, file=output_file)
+
+    # edgeR
+    print("mkdir edgeR_output_${filename}", end="\n", file=output_file)
+    print("Rscript ~/custom_command/edgeR_test.R", " \\", sep=" ", end="\n", file=output_file)
+    print(",".join(edger_filepass), " \\", sep=" ", end="\n", file=output_file)
+    print(",".join(edger_label), " \\", sep=" ", end="\n", file=output_file)
+    print("edgeR_output_${filename}", " \\", sep=" ", end="\n", file=output_file)
+    if len(control_filepass) == 1 and len(treated_filepass) == 1:
+        print("No", end="\n", file=output_file)
+    else:
+        print("Yes", end="\n", file=output_file)
+
+    rdger_line ="""
+# Add Annotation
+gene_list="/home/akimitsu/database/gencode.v19.annotation_filtered_symbol_type_list.txt"
+python2 ~/custom_command/annotate_gene_symbol_type.py  ${gene_list} edgeR_output_${filename}/edgeR_test_result.txt edgeR_output_${filename}/edgeR_test_result_anno_plus.txt
+python2 ~/custom_command/split_into_each_gene_type.py edgeR_output_${filename}/edgeR_test_result_anno_plus.txt
+"""
+    print(rdger_line, end="\n", file=output_file)
 
     output_file.close()
 
