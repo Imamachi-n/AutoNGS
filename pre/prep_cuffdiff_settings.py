@@ -29,7 +29,6 @@ cuffdiff_anno_line = """
 ## Annotation
 # gene_list="/home/akimitsu/database/gencode.v19.annotation_filtered_symbol_type_list.txt" #Required
 # cuffnorm_data="gene_exp.diff"
-# mRNA
 # gene_type="mRNA"
 # result_file="cuffdiff_result_mRNA.txt"
 # python ~/custom_command/cuffdiff_result.py ${gene_list} ./cuffdiff_out_${filename}/${cuffnorm_data} ${gene_type} ./cuffdiff_out_${filename}/${result_file}

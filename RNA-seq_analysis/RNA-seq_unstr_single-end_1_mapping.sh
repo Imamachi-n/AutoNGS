@@ -14,7 +14,7 @@ mkdir fastqc_${file}
 fastqc -o ./fastqc_${file} ./${file}.fastq -f fastq
 
 ## 2. Quality filtering (Option)
-fastq_quality_trimmer -Q33 -t 20 -l 10 -i ./${file}.fastq | fastq_quality_filter -Q33 -q 20 -p 80 -o ${file}_1_filtered.fastq
+# fastq_quality_trimmer -Q33 -t 20 -l 10 -i ./${file}.fastq | fastq_quality_filter -Q33 -q 20 -p 80 -o ${file}_1_filtered.fastq
 
 ## 3. rRNA removal (Option)
 # bowtie -p 8 --un ./${file}_2_norrna.fastq ${indexFile} ./${file}_1_filtered.fastq > rRNA_${file}.fastq 2>> ./log_${file}.txt
@@ -27,7 +27,7 @@ maxRAM=32000000000
 
 mkdir STAR_output_${file}
 STAR --runMode alignReads --runThreadN 8 --genomeDir ${indexFile} \
---readFilesIn ./${file}_1_filtered.fastq --outFilterType BySJout \
+--readFilesIn ./${file}.fastq --outFilterType BySJout \
 --outFileNamePrefix ./STAR_output_${file}/${file}_4_STAR_result_ \
 --outSAMstrandField intronMotif --outFilterIntronMotifs RemoveNoncanonical \
 --outSAMattributes All --outSAMtype BAM SortedByCoordinate --limitBAMsortRAM ${maxRAM} \
