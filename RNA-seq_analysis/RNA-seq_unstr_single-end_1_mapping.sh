@@ -49,6 +49,8 @@ bedtools genomecov -ibam ./STAR_output_${file}/${file}_4_STAR_result_Aligned.sor
 echo "track type=bedGraph name=${file} description=${file} visibility=2 maxHeightPixels=40:40:20" > ./UCSC_visual_${file}/tmp.txt
 cat ./UCSC_visual_${file}/tmp.txt ./UCSC_visual_${file}/${file}_4_result.bg > ./UCSC_visual_${file}/${file}_4_result_for_UCSC.bg
 bzip2 -c ./UCSC_visual_${file}/${file}_4_result_for_UCSC.bg > ./UCSC_visual_${file}/${file}_4_result_for_UCSC.bg.bz2
+rm ./UCSC_visual_${file}/${file}_4_result.bg
+rm ./UCSC_visual_${file}/${file}_4_result_for_UCSC.bg
 
 # featureCounts - read counts
 mkdir featureCounts_result_${file}
